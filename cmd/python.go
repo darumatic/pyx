@@ -68,7 +68,7 @@ func GetPythonVersion(python string) (string, error) {
 func EnsurePythonInstalled() string {
 	python, err := GetPython()
 	if err != nil {
-		fmt.Println("python3 not found, would you like to install python3? (y/n)")
+		fmt.Print("python3 not found, would you like to install python3? (y/n)")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" || input == "Y" {
