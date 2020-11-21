@@ -27,7 +27,7 @@ func Help(cmd *cobra.Command) {
 			}
 		}
 	}
-	fmt.Printf("dev is a python script manager for developers.\n")
+	fmt.Printf("dev makes delivering python scripts easier.\n")
 	python, _ := GetPython()
 	version, _ := GetPythonVersion(python)
 	fmt.Printf("python %s, version %s.\n\n", python, version)

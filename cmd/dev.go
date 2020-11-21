@@ -32,7 +32,6 @@ func MakeDev() *cobra.Command {
 				os.Exit(1)
 			}
 
-			EnsurePythonInstalled()
 			for _, folder := range Repository() {
 				scriptName := args[0]
 				if !strings.HasSuffix(scriptName, ".py") {
@@ -41,17 +40,7 @@ func MakeDev() *cobra.Command {
 				script := AppHomeDir() + "/" + folder + "/" + scriptName
 				if FileExists(script) {
 					commandArgs := append([]string{script}, args[1:]...)
-					python, _ := GetPython()
-					comd := exec.Command(python, commandArgs...)
-					comd.Stderr = os.Stderr
-					comd.Stdout = os.Stdout
-					comd.Stdin = os.Stdin
-					if err := comd.Run(); err != nil {
-						fmt.Println(err.Error())
-						os.Exit(1)
-					} else {
-						os.Exit(0)
-					}
+					RunPython(commandArgs...)
 				}
 			}
 
@@ -90,7 +79,7 @@ func HttpDownload(url string, pattern string) (string, error) {
 	return file.Name(), nil
 }
 
-func Exec(command string, args ...string) (int, error) {
+func RunCommand(command string, args ...string) (int, error) {
 	comd := exec.Command(command, args...)
 	comd.Stderr = os.Stderr
 	comd.Stdout = os.Stdout
@@ -106,13 +95,11 @@ func Exec(command string, args ...string) (int, error) {
 	}
 }
 
-// ? Check command exists
 func CommandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
-// ? Find latest folder
 func FindLastFolder(dir string) []string {
 	var folders []string
 	files, _ := ioutil.ReadDir(dir)

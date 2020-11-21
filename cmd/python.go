@@ -14,11 +14,6 @@ import (
 
 const PYTHON_VERSION = "3.8.0"
 
-func Python(cmd *cobra.Command) {
-	usage := cmd.UsageString()
-	fmt.Printf(usage)
-}
-
 func InstallPython() (bool, error) {
 	version := PYTHON_VERSION
 	if runtime.GOOS == "windows" {
@@ -28,37 +23,32 @@ func InstallPython() (bool, error) {
 	} else if runtime.GOOS == "darwin" {
 		return darwinInstallPython(version)
 	} else {
-		return false, errors.New("platform not support, please manually install python")
+		return false, errors.New("couldn't install python3, please manually install python3")
 	}
 }
 
 func MakePython() *cobra.Command {
 	var command = &cobra.Command{
-		Use:     "python",
-		Short:   "manage python installation",
-		Long:    `manage python installation`,
-		Example: `  dev python install`,
+		Use:                "python",
+		Short:              "run python script",
+		Long:               `run python script`,
+		Example:            `  dev python script.py`,
+		TraverseChildren:   true,
+		DisableFlagParsing: true,
 	}
-	var installCommand = &cobra.Command{
-		Use:     "install",
-		Short:   "install python",
-		Long:    `install python`,
-		Example: `  dev python install`,
-	}
-	installCommand.RunE = func(command *cobra.Command, args []string) error {
-		_, err := InstallPython()
-		if err != nil {
-			fmt.Printf("failed to install python, %s", err.Error())
-			os.Exit(1)
-		}
-		return nil
-	}
-	command.AddCommand(installCommand)
 	command.RunE = func(command *cobra.Command, args []string) error {
-		Python(command)
+		RunPython(args...)
 		return nil
 	}
 	return command
+}
+
+func RunPython(args ...string) {
+	python := EnsurePythonInstalled()
+	_, err := RunCommand(python, args...)
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 func GetPythonVersion(python string) (string, error) {
@@ -75,40 +65,36 @@ func GetPythonVersion(python string) (string, error) {
 	return version, nil
 }
 
-func EnsurePythonInstalled() {
+func EnsurePythonInstalled() string {
 	python, err := GetPython()
 	if err != nil {
-		if runtime.GOOS == "windows" {
-			fmt.Println("python not found, would you like to install python? (y/n)")
-			var input string
-			fmt.Scanln(&input)
-			if input == "y" || input == "Y" {
-				_, err := InstallPython()
-				if err != nil {
-					fmt.Printf("failed to install python, %s\n", err.Error())
-				}
-				python, err = GetPython()
-			} else {
-				os.Exit(1)
+		fmt.Println("python3 not found, would you like to install python3? (y/n)")
+		var input string
+		fmt.Scanln(&input)
+		if input == "y" || input == "Y" {
+			_, err := InstallPython()
+			if err != nil {
+				fmt.Println("couldn't install python3, please manually install python3")
 			}
+			python, err = GetPython()
 		} else {
-			fmt.Printf("Error: python not found, please install python3\n")
 			os.Exit(1)
 		}
 	}
 
 	version, err := GetPythonVersion(python)
 	if err != nil {
-		fmt.Printf(err.Error())
-		fmt.Printf("Warning: failed to get python version, dev requires python3\n")
-		return
+		fmt.Println(err.Error())
+		fmt.Println("couldn't install python3, please manually install python3")
+		os.Exit(1)
 	}
 
 	majorVersion, err := strconv.Atoi(strings.Split(version, ".")[0])
 	if majorVersion < 3 {
-		fmt.Printf("Warning: python version is %s, dev requires python3\n", version)
-		return
+		fmt.Println("couldn't install python3, please manually install python3")
+		os.Exit(1)
 	}
+	return python
 }
 
 func GetPython() (string, error) {
@@ -118,17 +104,10 @@ func GetPython() (string, error) {
 			return path, nil
 		}
 	}
-
 	path, err := exec.LookPath("python3")
 	if err == nil {
 		return path, nil
 	}
-
-	path, err = exec.LookPath("python")
-	if err == nil {
-		return path, nil
-	}
-
 	return "", err
 }
 
@@ -138,11 +117,8 @@ func windowsInstallPython(version string) (bool, error) {
 	if err != nil {
 		return false, errors.New(fmt.Sprintf("Failed to download %s, please check your netowrk", fileURL))
 	}
-
 	fmt.Printf("Installing python-%s\n", version)
-
-	fmt.Printf("file=%s", file)
-	status, err := Exec(file, "/quiet")
+	status, err := RunCommand(file, "/quiet")
 	if status != 0 && status != 1602 && status != 1638 {
 		return false, errors.New(fmt.Sprintf("Failed to install %s", file))
 	}
@@ -151,9 +127,33 @@ func windowsInstallPython(version string) (bool, error) {
 }
 
 func linuxInstallPython(version string) (bool, error) {
-	return false, nil
+	if CommandExists("apt") {
+		_, err := RunCommand("/bin/sh", "-c", "sudo apt install python3")
+		if err != nil {
+			return false, errors.New("failed to install python3")
+		}
+	} else if CommandExists("apt") {
+		_, err := RunCommand("/bin/sh", "-c", "sudo yum install python3")
+		if err != nil {
+			return false, errors.New("failed to install python3")
+		}
+	} else {
+		return false, errors.New("please install python3 manually")
+	}
+	return true, nil
 }
 
 func darwinInstallPython(version string) (bool, error) {
-	return false, nil
+	fileURL := fmt.Sprintf("https://www.python.org/ftp/python/%s/python-%s-macosx10.9.pkg", version, version)
+	file, err := HttpDownload(fileURL, "python."+version+".*.pkg")
+	if err != nil {
+		return false, errors.New(fmt.Sprintf("Failed to download %s, please check your netowrk", fileURL))
+	}
+	fmt.Printf("Installing python-%s\n", version)
+	status, err := RunCommand("/bin/sh", "-c", fmt.Sprintf("sudo installer -pkg %s -target /Applications", file))
+	if status != 0 {
+		return false, errors.New(fmt.Sprintf("Failed to install %s", file))
+	}
+	fmt.Println("python installed")
+	return true, nil
 }
