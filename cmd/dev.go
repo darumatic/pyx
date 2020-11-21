@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	Version = "1.0"
+	Version = "1.0.1"
 )
 
 func MakeDev() *cobra.Command {
