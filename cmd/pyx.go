@@ -65,7 +65,7 @@ func MakePyx() *cobra.Command {
 			} else if isHttpScript(args) {
 				script, err := downloadURL(args[0])
 				if err != nil {
-					fmt.Println("failed to download script %s, error=%s", args[0], err.Error())
+					fmt.Printf("failed to download script %s, error=%s\n", args[0], err.Error())
 					os.Exit(1)
 				}
 				commandArgs := []string{script}
