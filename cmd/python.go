@@ -140,14 +140,14 @@ func ensurePythonPermission() {
 func pythonBuildURL() (string, error) {
 	if runtime.GOOS == "windows" {
 		if runtime.GOARCH == "386" {
-			return "https://github.com/cicdchi/python-build-standalone/releases/download/3.8.7/python-3.8.7-i686-windows.tar.zst", nil
+			return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-i686-windows.tar.zst", nil
 		} else {
-			return "https://github.com/cicdchi/python-build-standalone/releases/download/3.8.7/python-3.8.7-x86_64-windows.tar.zst", nil
+			return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-windows.tar.zst", nil
 		}
 	} else if runtime.GOOS == "linux" {
-		return "https://github.com/cicdchi/python-build-standalone/releases/download/3.8.7/python-3.8.7-x86_64-linux.tar.zst", nil
+		return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-linux.tar.zst", nil
 	} else if runtime.GOOS == "darwin" {
-		return "https://github.com/cicdchi/python-build-standalone/releases/download/3.8.7/python-3.8.7-x86_64-apple-darwin.tar.zst", nil
+		return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-apple-darwin.tar.zst", nil
 	} else {
 		return "", errors.New(fmt.Sprintf("OS is not supported, os=%s", runtime.GOOS))
 	}
