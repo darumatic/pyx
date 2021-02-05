@@ -6,7 +6,7 @@ import (
 )
 
 func Help(cmd *cobra.Command) {
-	fmt.Printf("Single command to run remote python3 script anywhere.\n\n")
+	fmt.Printf("Single command to run python3 script anywhere.\n\n")
 	python, _ := GetPython()
 	fmt.Printf("python: %s\n", python)
 	ExampleUsage()
@@ -19,7 +19,7 @@ func ExampleUsage() {
 	fmt.Println("     or")
 	fmt.Println("     $ pyx git@github.com:darumatic/pyx.git scripts/hello.py")
 
-	fmt.Println("     For github repositories, we could also use the short repository name.")
+	fmt.Println("     For github repositories, we could also simply use the repository name.")
 	fmt.Println("     $ pyx darumatic/pyx scripts/hello.py")
 
 	fmt.Println("  2) Run http script")

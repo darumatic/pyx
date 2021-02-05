@@ -20,7 +20,7 @@ Single command to run python3 script anywhere. pyx = install python + install gi
    $ pyx git@github.com:darumatic/pyx.git scripts/hello.py
    ```
    
-   For github repositories, we could also use the short repository name.
+   For github repositories, we could also simply use the repository name.
    
    ```
    $ pyx darumatic/pyx scripts/hello.py
