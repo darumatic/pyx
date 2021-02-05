@@ -1,6 +1,10 @@
 # pyx
 
-Single command to run python3 script anywhere with python and Git support.
+Single command to run python3 script anywhere. pyx = install python + install git + checkout repository + run your script.
+
+
+![Alt text](docs/example.gif?raw=true "pyx example")
+
 
 ## Example usage
 

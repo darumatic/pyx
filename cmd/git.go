@@ -12,6 +12,7 @@ import (
 )
 
 func GitClone(repoURL string, dir string) error {
+	fmt.Printf("Clone repository, %s\n", repoURL)
 	if strings.HasPrefix(repoURL, "git@") {
 		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
 		sshKey, err := ioutil.ReadFile(s)
@@ -45,7 +46,7 @@ func GitClone(repoURL string, dir string) error {
 			Progress:     os.Stdout,
 			SingleBranch: true,
 		})
-
+		fmt.Println("")
 		return cloneError
 	} else {
 		_, cloneError := git.PlainClone(dir, false, &git.CloneOptions{
@@ -53,6 +54,7 @@ func GitClone(repoURL string, dir string) error {
 			Progress:     os.Stdout,
 			SingleBranch: true,
 		})
+		fmt.Println("")
 		return cloneError
 	}
 }

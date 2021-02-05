@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -17,22 +16,6 @@ import (
 )
 
 const PYTHON_VERSION = "3.8.7"
-
-func MakePython() *cobra.Command {
-	var command = &cobra.Command{
-		Use:                "python",
-		Short:              "run python script",
-		Long:               `run python script`,
-		Example:            `  pyx git/repo script.py`,
-		TraverseChildren:   true,
-		DisableFlagParsing: true,
-	}
-	command.RunE = func(command *cobra.Command, args []string) error {
-		RunPython(args...)
-		return nil
-	}
-	return command
-}
 
 func RunPython(args ...string) {
 	python := EnsurePythonInstalled()
@@ -59,22 +42,14 @@ func GetPythonVersion(python string) (string, error) {
 func EnsurePythonInstalled() string {
 	python, err := GetPython()
 	if err != nil {
-		fmt.Print("python3 is required, would you like to install python3? (y/n)")
-		var input string
-		fmt.Scanln(&input)
-		if input == "y" || input == "Y" {
-			_, err := InstallPython()
-			if err != nil {
-				fmt.Println(err.Error())
-				fmt.Println("couldn't install python3, please manually install python3")
-			}
-			python, err = GetPython()
-			if err != nil {
-				fmt.Println("couldn't install python3, please manually install python3")
-				os.Exit(1)
-			}
-		} else {
-			fmt.Println("please manually install python3")
+		_, err := InstallPython()
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("couldn't install python3, please manually install python3")
+		}
+		python, err = GetPython()
+		if err != nil {
+			fmt.Println("couldn't install python3, please manually install python3")
 			os.Exit(1)
 		}
 	}
@@ -114,6 +89,7 @@ func GetPython() (string, error) {
 
 func InstallPython() (bool, error) {
 	version := PYTHON_VERSION
+	fmt.Printf("Installing python-%s\n", version)
 	url, err := pythonBuildURL()
 	if err != nil {
 		return false, err
@@ -123,9 +99,6 @@ func InstallPython() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	fmt.Printf("Installing python-%s\n", version)
-	fmt.Printf("Installing python-%s\n", file)
 	f1, err := os.Open(file)
 	if err != nil {
 		return false, nil

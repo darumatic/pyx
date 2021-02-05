@@ -40,7 +40,7 @@ func MakePyx() *cobra.Command {
 				repoURL := fmt.Sprintf("https://github.com/%s", args[0])
 				dir, err := cloneGitRepo(repoURL)
 				if err != nil {
-					fmt.Println("failed to clone git repository %s, error=%s", repoURL, err.Error())
+					fmt.Printf("Error: failed to clone git repository %s, error=%s\n", repoURL, err.Error())
 					os.Exit(1)
 				}
 				script := path.Join(dir, args[1])
@@ -50,9 +50,10 @@ func MakePyx() *cobra.Command {
 				}
 				RunPython(commandArgs...)
 			} else if isGitScript(args) {
-				dir, err := cloneGitRepo(args[0])
+				repoURL := args[0]
+				dir, err := cloneGitRepo(repoURL)
 				if err != nil {
-					fmt.Println("failed to clone git repository %s, error=%s", args[0], err.Error())
+					fmt.Printf("Error: failed to clone git repository %s, error=%s\n", repoURL, err.Error())
 					os.Exit(1)
 				}
 				script := path.Join(dir, args[1])
@@ -94,7 +95,7 @@ func MakePyx() *cobra.Command {
 
 func isGithubScript(args []string) bool {
 	if len(args) > 1 {
-		r, _ := regexp.Compile("^[a-zA-z0-9]/[a-zA-z0-9]$")
+		r, _ := regexp.Compile("^[^/:]+/[^/:]+$")
 		if r.MatchString(args[0]) && isPythonFile(args[1]) {
 			return true
 		}
@@ -169,8 +170,6 @@ func PythonHome() string {
 }
 
 func HttpDownload(url string, output string) error {
-	fmt.Printf("Downloading %s\n", url)
-
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
