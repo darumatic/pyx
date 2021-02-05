@@ -125,6 +125,7 @@ func InstallPython() (bool, error) {
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		ensurePythonPermission()
 	}
+	fmt.Println("")
 	return true, nil
 }
 

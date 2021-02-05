@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-	cmd.EnsurePythonInstalled()
 	pyx := cmd.MakePyx()
 	pyx.AddCommand(cmd.MakeVersion())
 
