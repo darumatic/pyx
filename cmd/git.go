@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -11,14 +12,14 @@ import (
 	"strings"
 )
 
-func GitClone(repoURL string, dir string) error {
-	fmt.Printf("Clone repository, %s\n", repoURL)
+func GitClone(repoURL string, branch string, dir string) error {
+	fmt.Printf("Clone repository, %s, %s\n", repoURL, branch)
 	if strings.HasPrefix(repoURL, "git@") {
 		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
 		sshKey, err := ioutil.ReadFile(s)
 		if err != nil {
 			fmt.Println("missing ssh private key")
-			os.Exit(1)
+			return err
 		}
 		var signer ssh.Signer
 		var errP error
@@ -41,25 +42,27 @@ func GitClone(repoURL string, dir string) error {
 		}
 
 		_, cloneError := git.PlainClone(dir, false, &git.CloneOptions{
-			Auth:         auth,
-			URL:          repoURL,
-			Progress:     os.Stdout,
-			SingleBranch: true,
+			Auth:          auth,
+			URL:           repoURL,
+			ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			Progress:      os.Stdout,
+			SingleBranch:  true,
 		})
 		fmt.Println("")
 		return cloneError
 	} else {
 		_, cloneError := git.PlainClone(dir, false, &git.CloneOptions{
-			URL:          repoURL,
-			Progress:     os.Stdout,
-			SingleBranch: true,
+			URL:           repoURL,
+			ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			Progress:      os.Stdout,
+			SingleBranch:  true,
 		})
 		fmt.Println("")
 		return cloneError
 	}
 }
 
-func GitPull(repo string) error {
+func GitUpdate(repo string, branch string) error {
 	r, err := git.PlainOpen(repo)
 	if err != nil {
 		return err
@@ -101,15 +104,25 @@ func GitPull(repo string) error {
 			RemoteName: "origin",
 			Auth:       auth,
 		})
-		if err != nil && strings.Contains(err.Error(), "up-to-date") {
-			return nil
+		if err != nil && !strings.Contains(err.Error(), "up-to-date") {
+			return err
 		}
+		err = w.Checkout(&git.CheckoutOptions{
+			Create: false,
+			Force:  false,
+			Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+		})
 		return err
 	} else {
 		err = w.Pull(&git.PullOptions{RemoteName: "origin"})
-		if err != nil && strings.Contains(err.Error(), "up-to-date") {
-			return nil
+		if err != nil && !strings.Contains(err.Error(), "up-to-date") {
+			return err
 		}
+		err = w.Checkout(&git.CheckoutOptions{
+			Create: false,
+			Force:  false,
+			Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+		})
 		return err
 	}
 }

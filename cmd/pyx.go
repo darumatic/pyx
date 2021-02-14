@@ -3,9 +3,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/cheggaaa/pb/v3"
-	"github.com/spf13/cobra"
-	"github.com/whilp/git-urls"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +15,10 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+
+	"github.com/cheggaaa/pb/v3"
+	"github.com/spf13/cobra"
+	giturls "github.com/whilp/git-urls"
 )
 
 var (
@@ -30,7 +31,7 @@ func MakePyx() *cobra.Command {
 		Short:              "python script runner",
 		Long:               `python script runner`,
 		TraverseChildren:   true,
-		DisableFlagParsing: true,
+		DisableFlagParsing: false,
 		RunE: func(cmdc *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				Help(cmdc)
@@ -38,7 +39,9 @@ func MakePyx() *cobra.Command {
 			}
 			if isGithubScript(args) {
 				repoURL := fmt.Sprintf("https://github.com/%s", args[0])
-				dir, err := cloneGitRepo(repoURL)
+				branch := cmdc.Flag("branch").Value.String()
+
+				dir, err := cloneGitRepo(repoURL, branch)
 				if err != nil {
 					fmt.Printf("Error: failed to clone git repository %s, error=%s\n", repoURL, err.Error())
 					os.Exit(1)
@@ -51,9 +54,10 @@ func MakePyx() *cobra.Command {
 				RunPython(commandArgs...)
 			} else if isGitScript(args) {
 				repoURL := args[0]
-				dir, err := cloneGitRepo(repoURL)
+				branch := cmdc.Flag("branch").Value.String()
+				dir, err := cloneGitRepo(repoURL, branch)
 				if err != nil {
-					fmt.Printf("Error: failed to clone git repository %s, error=%s\n", repoURL, err.Error())
+					fmt.Printf("Error: failed to checkout git repository %s, error=%s\n", repoURL, err.Error())
 					os.Exit(1)
 				}
 				script := path.Join(dir, args[1])
@@ -62,7 +66,7 @@ func MakePyx() *cobra.Command {
 					commandArgs = append(commandArgs, args[2:]...)
 				}
 				RunPython(commandArgs...)
-			} else if isHttpScript(args) {
+			} else if isHTTPScript(args) {
 				script, err := downloadURL(args[0])
 				if err != nil {
 					fmt.Printf("failed to download script %s, error=%s\n", args[0], err.Error())
@@ -82,7 +86,7 @@ func MakePyx() *cobra.Command {
 				}
 				RunPython(commandArgs...)
 			} else {
-				fmt.Println("Error: unknown script\n")
+				fmt.Printf("Error: unknown script\n\n")
 
 				ExampleUsage()
 				os.Exit(1)
@@ -90,6 +94,8 @@ func MakePyx() *cobra.Command {
 			return nil
 		},
 	}
+
+	command.Flags().StringP("branch", "b", "master", "Git branch")
 	return command
 }
 
@@ -111,7 +117,7 @@ func isGitScript(args []string) bool {
 	return false
 }
 
-func isHttpScript(args []string) bool {
+func isHTTPScript(args []string) bool {
 	if len(args) > 0 {
 		return isURL(args[0]) && strings.HasSuffix(strings.ToLower(args[0]), ".py")
 	}
@@ -134,13 +140,13 @@ func isURL(name string) bool {
 	return strings.HasPrefix(strings.ToLower(name), "http:") || strings.HasPrefix(strings.ToLower(name), "https:")
 }
 
-func cloneGitRepo(repo string) (string, error) {
+func cloneGitRepo(repo string, branch string) (string, error) {
 	targetDir := path.Join(RepositoryHome(), normalizeRepoName(repo))
 	if DirExists(targetDir) {
-		err := GitPull(targetDir)
+		err := GitUpdate(targetDir, branch)
 		return targetDir, err
 	} else {
-		err := GitClone(repo, targetDir)
+		err := GitClone(repo, branch, targetDir)
 		return targetDir, err
 	}
 }
