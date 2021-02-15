@@ -29,5 +29,7 @@ changelog:
   sort: asc
   filters:
     exclude:
+      - 'README.md'
+      - 'LICENSE.txt'
       - '^docs:'
       - '^test:'
