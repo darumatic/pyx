@@ -21,6 +21,10 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+
+    files:
+      - NONE
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -29,7 +33,5 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - 'README.md'
-      - 'LICENSE.txt'
       - '^docs:'
       - '^test:'
