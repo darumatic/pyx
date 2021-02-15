@@ -23,7 +23,11 @@ archives:
       amd64: x86_64
 
     files:
-      - NONE
+      - none*
+
+    format_overrides:
+      - goos: windows
+        format: zip
 
 checksum:
   name_template: 'checksums.txt'
