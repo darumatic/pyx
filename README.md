@@ -82,7 +82,7 @@ $ pyx install 3.8.5
 $ pyx use 3.8.5
 ```
 
--- Support specify the python version when run scripts
+- Support specify the python version when run scripts
 ```bash
 $ pyx https://github.com/darumatic/pyx --branch=master --python=3.8.5 scripts/hello.py
 ```
