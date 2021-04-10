@@ -129,6 +129,13 @@ func InstallPython() (bool, error) {
 	return true, nil
 }
 
+func InitPythonProject(dir string) {
+	requirementsTxt := path.Join(dir, "requirements.txt")
+	if FileExists(requirementsTxt) {
+		RunPython("-m", "pip", "install", "-r", "requirements.txt")
+	}
+}
+
 func ensurePythonPermission() {
 	path := filepath.Join(PythonHome(), "bin", "python3.8")
 	if FileExists(path) {

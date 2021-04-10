@@ -78,6 +78,8 @@ func (pyx Pyx) runGitScript(repoURL string, branch string, script string, script
 		Error("failed to checkout git repository %s, error=%s\n", repoURL, err.Error())
 		os.Exit(1)
 	}
+
+	InitPythonProject(dir)
 	scriptFile := path.Join(dir, script)
 	commandArgs := []string{scriptFile}
 	if len(scriptArgs) > 2 {
@@ -87,12 +89,14 @@ func (pyx Pyx) runGitScript(repoURL string, branch string, script string, script
 	return 0
 }
 
-func (pyx Pyx) runLocalScript(localDir string, script string, scriptArgs []string) (code int) {
-	scriptFile := path.Join(localDir, script)
+func (pyx Pyx) runLocalScript(dir string, script string, scriptArgs []string) (code int) {
+	scriptFile := path.Join(dir, script)
 	if !FileExists(scriptFile) {
 		Error("script doesn't exist, path=%s", scriptFile)
 		return 1
 	}
+
+	InitPythonProject(dir)
 	commandArgs := []string{scriptFile}
 	if len(scriptArgs) > 1 {
 		commandArgs = append(commandArgs, scriptArgs...)
