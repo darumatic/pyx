@@ -2,133 +2,144 @@ package cmd
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
+	giturls "github.com/whilp/git-urls"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strings"
-
-	"github.com/cheggaaa/pb/v3"
-	"github.com/spf13/cobra"
-	giturls "github.com/whilp/git-urls"
 )
 
-var (
-	Version = "1.0.3"
-)
+var version = "1.0.4"
 
-func MakePyx() *cobra.Command {
-	var command = &cobra.Command{
-		Use:                "pyx",
-		Short:              "python script runner",
-		Long:               `python script runner`,
-		TraverseChildren:   true,
-		DisableFlagParsing: false,
-		RunE: func(cmdc *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				Help(cmdc)
-				os.Exit(0)
-			}
-			if isGithubScript(args) {
-				repoURL := fmt.Sprintf("https://github.com/%s", args[0])
-				branch := cmdc.Flag("branch").Value.String()
-
-				dir, err := cloneGitRepo(repoURL, branch)
-				if err != nil {
-					fmt.Printf("Error: failed to clone git repository %s, error=%s\n", repoURL, err.Error())
-					os.Exit(1)
-				}
-				script := path.Join(dir, args[1])
-				commandArgs := []string{script}
-				if len(args) > 2 {
-					commandArgs = append(commandArgs, args[2:]...)
-				}
-				RunPython(commandArgs...)
-			} else if isGitScript(args) {
-				repoURL := args[0]
-				branch := cmdc.Flag("branch").Value.String()
-				dir, err := cloneGitRepo(repoURL, branch)
-				if err != nil {
-					fmt.Printf("Error: failed to checkout git repository %s, error=%s\n", repoURL, err.Error())
-					os.Exit(1)
-				}
-				script := path.Join(dir, args[1])
-				commandArgs := []string{script}
-				if len(args) > 2 {
-					commandArgs = append(commandArgs, args[2:]...)
-				}
-				RunPython(commandArgs...)
-			} else if isHTTPScript(args) {
-				script, err := downloadURL(args[0])
-				if err != nil {
-					fmt.Printf("failed to download script %s, error=%s\n", args[0], err.Error())
-					os.Exit(1)
-				}
-				commandArgs := []string{script}
-				fmt.Println(len(args))
-				if len(args) > 1 {
-					commandArgs = append(commandArgs, args[1:]...)
-				}
-				RunPython(commandArgs...)
-			} else if isLocalScript(args) {
-				script := args[0]
-				commandArgs := []string{script}
-				if len(args) > 1 {
-					commandArgs = append(commandArgs, args[1:]...)
-				}
-				RunPython(commandArgs...)
-			} else {
-				fmt.Printf("Error: unknown script\n\n")
-
-				ExampleUsage()
-				os.Exit(1)
-			}
-			return nil
-		},
-	}
-
-	command.Flags().StringP("branch", "b", "master", "Git branch")
-	return command
+type Pyx struct {
 }
 
-func isGithubScript(args []string) bool {
-	if len(args) > 1 {
-		r, _ := regexp.Compile("^[^/:]+/[^/:]+$")
-		if r.MatchString(args[0]) && isPythonFile(args[1]) {
-			return true
+func (pyx Pyx) Run() (code int) {
+	p := &Args{}
+	fs := flag.NewFlagSet("pyx", flag.ContinueOnError)
+
+	args, err := p.Parse(fs)
+	if err != nil {
+		Error("invalid command.")
+		ExampleUsage()
+		return 1
+	}
+
+	if args.version {
+		pyx.version()
+		return 0
+	}
+
+	if args.help {
+		pyx.help()
+		return 0
+	}
+
+	if args.repo != "" && args.script != "" {
+		if isGithubScript(args.repo, args.script) {
+			repo := fmt.Sprintf("https://github.com/%s.git", args.repo)
+			return pyx.runGitScript(repo, args.branch, args.script, args.scriptArgs)
+		} else if isGitScript(args.repo, args.script) {
+			return pyx.runGitScript(args.repo, args.branch, args.script, args.scriptArgs)
+		} else if isLocalScript(args.repo, args.script) {
+			return pyx.runLocalScript(args.repo, args.script, args.scriptArgs)
 		}
 	}
-	return false
+
+	Error("invalid command.")
+	ExampleUsage()
+	return 1
 }
 
-func isGitScript(args []string) bool {
-	if len(args) > 1 {
-		_, err := giturls.Parse(args[0])
-		return err == nil && isPythonFile(args[1])
+func (pyx Pyx) version() (status int) {
+	fmt.Println(version)
+	return 0
+}
+
+func (pyx Pyx) help() (status int) {
+	fmt.Printf("Single command to run python3 script anywhere.\n\n")
+	python, _ := GetPython()
+	fmt.Printf("python: %s\n", python)
+	ExampleUsage()
+	return 0
+}
+
+func (pyx Pyx) runGitScript(repoURL string, branch string, script string, scriptArgs []string) (code int) {
+	dir, err := cloneGitRepo(repoURL, branch)
+	if err != nil {
+		Error("failed to checkout git repository %s, error=%s\n", repoURL, err.Error())
+		os.Exit(1)
+	}
+	scriptFile := path.Join(dir, script)
+	commandArgs := []string{scriptFile}
+	if len(scriptArgs) > 2 {
+		commandArgs = append(commandArgs, scriptArgs...)
+	}
+	RunPython(commandArgs...)
+	return 0
+}
+
+func (pyx Pyx) runLocalScript(localDir string, script string, scriptArgs []string) (code int) {
+	scriptFile := path.Join(localDir, script)
+	if !FileExists(scriptFile) {
+		Error("script doesn't exist, path=%s", scriptFile)
+		return 1
+	}
+	commandArgs := []string{scriptFile}
+	if len(scriptArgs) > 1 {
+		commandArgs = append(commandArgs, scriptArgs...)
+	}
+	RunPython(commandArgs...)
+	return 0
+}
+
+func ExampleUsage() {
+	fmt.Println("Example usage:")
+	fmt.Println("  1) Run git repository scripts")
+	fmt.Println("     $ pyx https://github.com/darumatic/pyx scripts/hello.py")
+	fmt.Println("     or")
+	fmt.Println("     $ pyx git@github.com:darumatic/pyx.git scripts/hello.py")
+
+	fmt.Println("     For github repositories, we could also simply use the repository name.")
+	fmt.Println("     $ pyx darumatic/pyx scripts/hello.py")
+
+	fmt.Println("  2) Run http script")
+	fmt.Println("     $ pyx https://raw.githubusercontent.com/darumatic/pyx/master/scripts/hello.py")
+
+	fmt.Println("  3) Run local script")
+	fmt.Println("     $ pyx hello.py")
+}
+
+func Error(message string, args ...string) {
+	errorMessage := fmt.Sprintf(message, args)
+	fmt.Printf("Error: %s\n", errorMessage)
+}
+
+func isGithubScript(project string, script string) bool {
+	r, _ := regexp.Compile("^[^/:]+/[^/:]+$")
+	if r.MatchString(project) && isPythonFile(script) {
+		return true
 	}
 	return false
 }
 
-func isHTTPScript(args []string) bool {
-	if len(args) > 0 {
-		return isURL(args[0]) && strings.HasSuffix(strings.ToLower(args[0]), ".py")
-	}
-	return false
+func isGitScript(project string, script string) bool {
+	url, err := giturls.Parse(project)
+	fmt.Printf("%+v\n", url)
+	return err == nil && url.Scheme != "file" && isPythonFile(script)
 }
 
-func isLocalScript(args []string) bool {
-	if len(args) > 0 {
-		return isPythonFile(args[0])
-	}
-	return false
+func isLocalScript(project string, script string) bool {
+	scriptFile := path.Join(project, script)
+	return isPythonFile(scriptFile)
 }
 
 func isPythonFile(name string) bool {
@@ -136,14 +147,10 @@ func isPythonFile(name string) bool {
 	return r.MatchString(name)
 }
 
-func isURL(name string) bool {
-	return strings.HasPrefix(strings.ToLower(name), "http:") || strings.HasPrefix(strings.ToLower(name), "https:")
-}
-
 func cloneGitRepo(repo string, branch string) (string, error) {
 	targetDir := path.Join(RepositoryHome(), normalizeRepoName(repo))
 	if DirExists(targetDir) {
-		err := GitUpdate(targetDir, branch)
+		err := GitPull(targetDir, branch)
 		return targetDir, err
 	} else {
 		err := GitClone(repo, branch, targetDir)
@@ -151,20 +158,9 @@ func cloneGitRepo(repo string, branch string) (string, error) {
 	}
 }
 
-func downloadURL(scriptURL string) (string, error) {
-	targetFile := path.Join(RepositoryHome(), "http", normalizeURLName(scriptURL))
-	err := HttpDownload(scriptURL, targetFile)
-	return targetFile, err
-}
-
 func normalizeRepoName(repoURL string) string {
 	u, _ := giturls.Parse(repoURL)
-	return path.Join(strings.ReplaceAll(u.Hostname(), ".", "_"), strings.ReplaceAll(u.Path, "/", "_"))
-}
-
-func normalizeURLName(scriptURL string) string {
-	u, _ := url.Parse(scriptURL)
-	return path.Join(strings.ReplaceAll(u.Hostname(), ".", "_"), strings.ReplaceAll(u.Path, "/", "_"))
+	return path.Join(strings.ReplaceAll(u.Hostname(), ".", "_"), strings.ReplaceAll(u.Path[1:], "/", "_"))
 }
 
 func RepositoryHome() string {
@@ -216,24 +212,6 @@ func RunCommand(command string, args ...string) (int, error) {
 	}
 }
 
-func CommandExists(cmd string) bool {
-	_, err := exec.LookPath(cmd)
-	return err == nil
-}
-
-func FindFolders(dir string) []string {
-	var folders []string
-	files, _ := ioutil.ReadDir(dir)
-
-	for _, file := range files {
-		if file.Mode().IsDir() {
-			folders = append(folders, file.Name())
-		}
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(folders)))
-	return folders
-}
-
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -268,14 +246,4 @@ func UserHomeDir() string {
 
 func PYXHome() string {
 	return filepath.Join(UserHomeDir(), ".pyx")
-}
-
-// ? Find string in slice
-func Find(slice []string, val string) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
 }

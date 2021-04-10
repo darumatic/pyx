@@ -13,9 +13,8 @@ import (
 )
 
 func GitClone(repoURL string, branch string, dir string) error {
-	fmt.Printf("Clone repository, %s, %s\n", repoURL, branch)
 	if strings.HasPrefix(repoURL, "git@") {
-		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
+		s := fmt.Sprintf("%s/.ssh/id_rsa", "")
 		sshKey, err := ioutil.ReadFile(s)
 		if err != nil {
 			fmt.Println("missing ssh private key")
@@ -44,7 +43,7 @@ func GitClone(repoURL string, branch string, dir string) error {
 		_, cloneError := git.PlainClone(dir, false, &git.CloneOptions{
 			Auth:          auth,
 			URL:           repoURL,
-			ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			ReferenceName: referenceName(branch),
 			Progress:      os.Stdout,
 			SingleBranch:  true,
 		})
@@ -53,7 +52,7 @@ func GitClone(repoURL string, branch string, dir string) error {
 	} else {
 		_, cloneError := git.PlainClone(dir, false, &git.CloneOptions{
 			URL:           repoURL,
-			ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			ReferenceName: referenceName(branch),
 			Progress:      os.Stdout,
 			SingleBranch:  true,
 		})
@@ -62,7 +61,7 @@ func GitClone(repoURL string, branch string, dir string) error {
 	}
 }
 
-func GitUpdate(repo string, branch string) error {
+func GitPull(repo string, branch string) error {
 	r, err := git.PlainOpen(repo)
 	if err != nil {
 		return err
@@ -75,7 +74,7 @@ func GitUpdate(repo string, branch string) error {
 	cfg := remote.Config()
 
 	if strings.HasPrefix(cfg.URLs[0], "git@") {
-		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
+		s := fmt.Sprintf("%s/.ssh/id_rsa", "")
 		sshKey, err := ioutil.ReadFile(s)
 		if err != nil {
 			fmt.Print(err)
@@ -110,7 +109,7 @@ func GitUpdate(repo string, branch string) error {
 		err = w.Checkout(&git.CheckoutOptions{
 			Create: false,
 			Force:  false,
-			Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			Branch: referenceName(branch),
 		})
 		return err
 	} else {
@@ -121,8 +120,15 @@ func GitUpdate(repo string, branch string) error {
 		err = w.Checkout(&git.CheckoutOptions{
 			Create: false,
 			Force:  false,
-			Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
+			Branch: referenceName(branch),
 		})
 		return err
 	}
+}
+
+func referenceName(branch string) (name plumbing.ReferenceName) {
+	if branch == "" {
+		return ""
+	}
+	return plumbing.NewBranchReferenceName(branch)
 }
