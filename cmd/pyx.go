@@ -24,7 +24,7 @@ type Pyx struct {
 
 func (pyx Pyx) Run() (code int) {
 	if len(os.Args) == 1 {
-		Usage()
+		pyx.help()
 		return 0
 	}
 	p := &Args{}
