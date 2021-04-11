@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-const PYTHON_VERSION = "3.8.7"
+const PYTHON_VERSION = "3.9.2"
 
 func RunPython(args ...string) {
 	python := EnsurePythonInstalled()
@@ -46,6 +46,7 @@ func EnsurePythonInstalled() string {
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("couldn't install python3, please manually install python3")
+			os.Exit(1)
 		}
 		python, err = GetPython()
 		if err != nil {
@@ -70,19 +71,19 @@ func EnsurePythonInstalled() string {
 
 func GetPython() (string, error) {
 	if runtime.GOOS == "windows" {
-		path := filepath.Join(PythonHome(), "python.exe")
-		if FileExists(path) {
-			return path, nil
+		pythonPath := filepath.Join(PythonHome(), "python.exe")
+		if FileExists(pythonPath) {
+			return pythonPath, nil
 		}
 	} else {
-		path := filepath.Join(PythonHome(), "bin", "python3.8")
-		if FileExists(path) {
-			return path, nil
+		pythonPath := filepath.Join(PythonHome(), "bin", "python3")
+		if FileExists(pythonPath) {
+			return pythonPath, nil
 		}
 	}
-	path, err := exec.LookPath("python3")
+	pythonPath, err := exec.LookPath("python3")
 	if err == nil {
-		return path, nil
+		return pythonPath, nil
 	}
 	return "", errors.New("python3 not installed")
 }
@@ -122,9 +123,6 @@ func InstallPython() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-		ensurePythonPermission()
-	}
 	fmt.Println("")
 	return true, nil
 }
@@ -136,27 +134,15 @@ func InitPythonProject(dir string) {
 	}
 }
 
-func ensurePythonPermission() {
-	path := filepath.Join(PythonHome(), "bin", "python3.8")
-	if FileExists(path) {
-		file, _ := os.Open(path)
-		os.Chmod(file.Name(), 755)
-		file.Close()
-	}
-}
-
 func pythonBuildURL() (string, error) {
-	if runtime.GOOS == "windows" {
-		if runtime.GOARCH == "386" {
-			return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-i686-windows.tar.zst", nil
-		} else {
-			return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-windows.tar.zst", nil
-		}
-	} else if runtime.GOOS == "linux" {
-		return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-linux.tar.zst", nil
-	} else if runtime.GOOS == "darwin" {
-		return "https://github.com/darumatic/pyx/releases/download/python/python-3.8.7-x86_64-apple-darwin.tar.zst", nil
-	} else {
-		return "", errors.New(fmt.Sprintf("OS is not supported, os=%s", runtime.GOOS))
+	if runtime.GOOS != "windows" && runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
+		return "", errors.New(runtime.GOOS + " not supported")
 	}
+	var arch string
+	if runtime.GOARCH == "386" {
+		arch = "i686"
+	} else {
+		arch = "x86_64"
+	}
+	return fmt.Sprintf("https://github.com/darumatic/pyx/releases/download/python-%s/python-%s-%s-%s.tar.zst", PYTHON_VERSION, PYTHON_VERSION, arch, runtime.GOOS), nil
 }

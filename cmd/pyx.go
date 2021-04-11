@@ -23,13 +23,17 @@ type Pyx struct {
 }
 
 func (pyx Pyx) Run() (code int) {
+	if len(os.Args) == 1 {
+		Usage()
+		return 0
+	}
 	p := &Args{}
 	fs := flag.NewFlagSet("pyx", flag.ContinueOnError)
 
 	args, err := p.Parse(fs)
 	if err != nil {
-		Error("invalid command.")
-		ExampleUsage()
+		Error("Incorrect parameters")
+		Usage()
 		return 1
 	}
 
@@ -54,21 +58,22 @@ func (pyx Pyx) Run() (code int) {
 		}
 	}
 
-	Error("invalid command.")
-	ExampleUsage()
+	Error("Incorrect parameters")
+	Usage()
 	return 1
 }
 
 func (pyx Pyx) version() (status int) {
-	fmt.Println(version)
+	fmt.Printf("pyx %s\n", version)
+	python, _ := GetPython()
+	pythonVersion, _ := GetPythonVersion(python)
+	fmt.Printf("python %s", pythonVersion)
 	return 0
 }
 
 func (pyx Pyx) help() (status int) {
 	fmt.Printf("Single command to run python3 script anywhere.\n\n")
-	python, _ := GetPython()
-	fmt.Printf("python: %s\n", python)
-	ExampleUsage()
+	Usage()
 	return 0
 }
 
@@ -105,31 +110,39 @@ func (pyx Pyx) runLocalScript(dir string, script string, scriptArgs []string) (c
 	return 0
 }
 
-func ExampleUsage() {
-	fmt.Println("Example usage:")
-	fmt.Println("  1) Run git repository scripts")
-	fmt.Println("     $ pyx https://github.com/darumatic/pyx scripts/hello.py")
-	fmt.Println("     or")
-	fmt.Println("     $ pyx git@github.com:darumatic/pyx.git scripts/hello.py")
+func Usage() {
+	fmt.Println("Usage :\npyx [args] REPO SCRIPT\n")
+	fmt.Println("REPO : Git repository URL or local folder")
+	fmt.Println("SCRIPT : python script relative path")
+	fmt.Println("Arguments :")
+	fmt.Println("--branch : Git repository branch")
+	fmt.Println("--version : display pyx version")
+	fmt.Println("--help : display help and exit")
 
-	fmt.Println("     For github repositories, we could also simply use the repository name.")
-	fmt.Println("     $ pyx darumatic/pyx scripts/hello.py")
-
-	fmt.Println("  2) Run http script")
-	fmt.Println("     $ pyx https://raw.githubusercontent.com/darumatic/pyx/master/scripts/hello.py")
-
-	fmt.Println("  3) Run local script")
-	fmt.Println("     $ pyx hello.py")
+	fmt.Println("\nExamples :")
+	fmt.Println("1) Run remote git repository python script")
+	fmt.Println("$ pyx --branch=master https://github.com/darumatic/pyx.git scripts/hello.py")
+	fmt.Println("or")
+	fmt.Println("$ pyx git@github.com:darumatic/pyx.git scripts/hello.py\n")
+	fmt.Println("2) Support short name for github repositories")
+	fmt.Println("$ pyx darumatic/pyx scripts/hello.py\n")
+	fmt.Println("3) Run local python script")
+	fmt.Println("$ pyx /opt/darumatic/pyx scripts/hello.py")
 }
 
 func Error(message string, args ...string) {
-	errorMessage := fmt.Sprintf(message, args)
+	var errorMessage string
+	if len(args) > 0 {
+		errorMessage = fmt.Sprintf(message, args)
+	} else {
+		errorMessage = message
+	}
 	fmt.Printf("Error: %s\n", errorMessage)
 }
 
 func isGithubScript(project string, script string) bool {
 	r, _ := regexp.Compile("^[^/:]+/[^/:]+$")
-	if r.MatchString(project) && isPythonFile(script) {
+	if strings.Index(project, "..") != 0 && strings.Index(project, ".") != 0 && r.MatchString(project) && isPythonFile(script) {
 		return true
 	}
 	return false
@@ -137,7 +150,6 @@ func isGithubScript(project string, script string) bool {
 
 func isGitScript(project string, script string) bool {
 	url, err := giturls.Parse(project)
-	fmt.Printf("%+v\n", url)
 	return err == nil && url.Scheme != "file" && isPythonFile(script)
 }
 
@@ -168,7 +180,7 @@ func normalizeRepoName(repoURL string) string {
 }
 
 func RepositoryHome() string {
-	return filepath.Join(UserHomeDir(), ".pyx", "cache")
+	return filepath.Join(UserHomeDir(), ".pyx", "repo")
 }
 
 func PythonHome() string {
