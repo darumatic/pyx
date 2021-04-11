@@ -90,11 +90,6 @@ func GetPython() (string, error) {
 	return "", errors.New("python3 not installed")
 }
 
-func minorVersion(version string) string {
-	var re = regexp.MustCompile(`\.[\d+]$`)
-	return re.ReplaceAllString(version, "")
-}
-
 func InstallPython() (bool, error) {
 	version := PYTHON_VERSION
 	fmt.Printf("Installing python-%s\n", version)
@@ -130,6 +125,10 @@ func InstallPython() (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		ensurePythonPermission()
+	}
 	fmt.Println("")
 	return true, nil
 }
@@ -138,6 +137,21 @@ func InitPythonProject(dir string) {
 	requirementsTxt := path.Join(dir, "requirements.txt")
 	if FileExists(requirementsTxt) {
 		RunPython("-m", "pip", "install", "-r", "requirements.txt")
+	}
+}
+
+func minorVersion(version string) string {
+	var re = regexp.MustCompile(`\.[\d+]$`)
+	return re.ReplaceAllString(version, "")
+}
+
+func ensurePythonPermission() {
+	pythonVersion := "python" + minorVersion(PYTHON_VERSION)
+	path := filepath.Join(PythonHome(), "bin", pythonVersion)
+	if FileExists(path) {
+		file, _ := os.Open(path)
+		os.Chmod(file.Name(), 755)
+		file.Close()
 	}
 }
 
