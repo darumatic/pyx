@@ -11,26 +11,26 @@ Single command to run python3 script anywhere. pyx = install python + install gi
 1) Run git repository python scripts
 
    ```
-   $ pyx --branch=master https://github.com/darumatic/pyx  docs/example/hello.py
+   $ pyx --branch=master https://github.com/darumatic/pyx  docs/example/demo.py
    ```
    
    or 
    
    ```
-   $ pyx git@github.com:darumatic/pyx.git docs/example/hello.py
+   $ pyx git@github.com:darumatic/pyx.git docs/example/demo.py
    ```
    
    For github repositories, we could also use the short repository name.
    
    ```
-   $ pyx darumatic/pyx docs/example/hello.py
+   $ pyx darumatic/pyx docs/example/demo.py
    ```
    
    
 2) Run local python scripts
    
    ```
-   $ pyx ./darumatic/pyx docs/example/hello.py
+   $ pyx ./darumatic/pyx docs/example/demo.py
    ```
 
 ## Install pyx
