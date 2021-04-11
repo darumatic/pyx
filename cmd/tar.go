@@ -37,7 +37,6 @@ func DecompressTar(in io.Reader, dir string) error {
 			}
 			_ = outFile.Close()
 		default:
-			fmt.Printf("DecompressTar: unknown type")
 		}
 	}
 	return nil

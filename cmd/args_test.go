@@ -7,12 +7,6 @@ import (
 	"testing"
 )
 
-func assertEqual(t *testing.T, a interface{}, b interface{}) {
-	if a != b {
-		t.Fatalf("%s != %s", a, b)
-	}
-}
-
 func TestArgs(t *testing.T) {
 	{
 		os.Args = []string{"pyx", "--version"}
@@ -24,8 +18,8 @@ func TestArgs(t *testing.T) {
 			t.Error(err)
 		}
 
-		assertEqual(t, args.version, true)
-		assertEqual(t, args.help, false)
+		AssertEqual(t, args.version, true)
+		AssertEqual(t, args.help, false)
 	}
 
 	{
@@ -38,8 +32,8 @@ func TestArgs(t *testing.T) {
 			t.Error(err)
 		}
 
-		assertEqual(t, args.help, true)
-		assertEqual(t, args.version, false)
+		AssertEqual(t, args.help, true)
+		AssertEqual(t, args.version, false)
 	}
 
 	{
@@ -54,11 +48,11 @@ func TestArgs(t *testing.T) {
 
 		fmt.Printf("%+v\n", *args)
 
-		assertEqual(t, args.help, false)
-		assertEqual(t, args.version, false)
-		assertEqual(t, args.branch, "master")
-		assertEqual(t, args.repo, "darumatic/pyx")
-		assertEqual(t, args.script, "scripts/hello.py")
-		assertEqual(t, len(args.scriptArgs), 1)
+		AssertEqual(t, args.help, false)
+		AssertEqual(t, args.version, false)
+		AssertEqual(t, args.branch, "master")
+		AssertEqual(t, args.repo, "darumatic/pyx")
+		AssertEqual(t, args.script, "scripts/hello.py")
+		AssertEqual(t, len(args.scriptArgs), 1)
 	}
 }

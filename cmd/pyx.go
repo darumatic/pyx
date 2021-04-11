@@ -111,7 +111,7 @@ func (pyx Pyx) runLocalScript(dir string, script string, scriptArgs []string) (c
 }
 
 func Usage() {
-	fmt.Println("Usage :\npyx [args] REPO SCRIPT\n")
+	fmt.Print("Usage :\npyx [args] REPO SCRIPT\n\n")
 	fmt.Println("REPO : Git repository URL or local folder")
 	fmt.Println("SCRIPT : python script relative path")
 	fmt.Println("Arguments :")
@@ -123,9 +123,9 @@ func Usage() {
 	fmt.Println("1) Run remote git repository python script")
 	fmt.Println("$ pyx --branch=master https://github.com/darumatic/pyx.git scripts/hello.py")
 	fmt.Println("or")
-	fmt.Println("$ pyx git@github.com:darumatic/pyx.git scripts/hello.py\n")
+	fmt.Print("$ pyx git@github.com:darumatic/pyx.git scripts/hello.py\n\n")
 	fmt.Println("2) Support short name for github repositories")
-	fmt.Println("$ pyx darumatic/pyx scripts/hello.py\n")
+	fmt.Print("$ pyx darumatic/pyx scripts/hello.py\n\n")
 	fmt.Println("3) Run local python script")
 	fmt.Println("$ pyx /opt/darumatic/pyx scripts/hello.py")
 }

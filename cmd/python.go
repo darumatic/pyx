@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -76,7 +77,8 @@ func GetPython() (string, error) {
 			return pythonPath, nil
 		}
 	} else {
-		pythonPath := filepath.Join(PythonHome(), "bin", "python3")
+		pythonVersion := "python" + minorVersion(PYTHON_VERSION)
+		pythonPath := filepath.Join(PythonHome(), "bin", pythonVersion)
 		if FileExists(pythonPath) {
 			return pythonPath, nil
 		}
@@ -86,6 +88,11 @@ func GetPython() (string, error) {
 		return pythonPath, nil
 	}
 	return "", errors.New("python3 not installed")
+}
+
+func minorVersion(version string) string {
+	var re = regexp.MustCompile(`\.[\d+]$`)
+	return re.ReplaceAllString(version, "")
 }
 
 func InstallPython() (bool, error) {
