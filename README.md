@@ -11,48 +11,43 @@ Single command to run python3 script anywhere. pyx = install python + install gi
 1) Run git repository python scripts
 
    ```
-   $ pyx https://github.com/darumatic/pyx --branch=master scripts/hello.py
+   $ pyx --branch=master https://github.com/darumatic/pyx  docs/example/hello.py
    ```
    
    or 
    
    ```
-   $ pyx git@github.com:darumatic/pyx.git scripts/hello.py
+   $ pyx git@github.com:darumatic/pyx.git docs/example/hello.py
    ```
    
-   For github repositories, we could also simply use the repository name.
+   For github repositories, we could also use the short repository name.
    
    ```
-   $ pyx darumatic/pyx scripts/hello.py
+   $ pyx darumatic/pyx docs/example/hello.py
    ```
    
-3) Run http python scripts
-
-   ```
-   $ pyx https://raw.githubusercontent.com/darumatic/pyx/master/scripts/hello.py
-   ```
    
-4) Run local python scripts
+2) Run local python scripts
    
    ```
-   $ pyx hello.py
+   $ pyx ./darumatic/pyx docs/example/hello.py
    ```
 
 ## Install pyx
 
 ### Windows 10 
 
-1. Download the binary archive file. [https://github.com/darumatic/pyx/releases/download/1.0.3/pyx_1.0.3_Windows_x86_64.zip](https://github.com/darumatic/pyx/releases/download/1.0.3/pyx_1.0.3_Windows_x86_64.zip)
+1. Download the binary archive file. [https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Windows_x86_64.zip](https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Windows_x86_64.zip)
 2. Unzip the archive file.
-3. Open terminal, run ```./pyx version```
+3. Open terminal, run ```./pyx --version```
 
 ### Linux
 
 1. Open terminal, and run the following command. 
 ```bash
-sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.3/pyx_1.0.3_Linux_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
+sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Linux_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
 ```
-3. Run ```./pyx version```
+3. Run ```./pyx --version```
 
 
 ### MacOS
@@ -71,19 +66,4 @@ sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.3/pyx_1.0.3_
 pyx makes sharing python scripts among the teams easier. 
 
 - Single command to run python scripts, easy to document.
-- Keep the script updated. 
-
-## TODO
-
-- Support python management like nvm for nodejs. 
-```bash
-$ pyx list
-$ pyx install 3.8.5
-$ pyx use 3.8.5
-```
-
-- Support specify the python version when run scripts
-```bash
-$ pyx https://github.com/darumatic/pyx --branch=master --python=3.8.5 scripts/hello.py
-```
-
+- Keep the script updated.
