@@ -52,7 +52,11 @@ sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_
 
 ### MacOS
 
-1. Open terminal, run ```brew tap darumatic/tap && brew install pyx```
+1. Open terminal, and run the following command. 
+```bash
+sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Darwin_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
+```
+3. Run ```./pyx --version```
 
 ## How it works
 1. pyx will first check if python3 installed in local.
