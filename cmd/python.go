@@ -136,7 +136,7 @@ func InstallPython() (bool, error) {
 func InitPythonProject(dir string) {
 	requirementsTxt := path.Join(dir, "requirements.txt")
 	if FileExists(requirementsTxt) {
-		RunPython("-m", "pip", "install", "-r", "requirements.txt")
+		RunPython("-m", "pip", "install", "-r", requirementsTxt)
 	}
 }
 
