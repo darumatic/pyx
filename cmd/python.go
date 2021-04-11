@@ -160,10 +160,18 @@ func pythonBuildURL() (string, error) {
 		return "", errors.New(runtime.GOOS + " not supported")
 	}
 	var arch string
+	os := runtime.GOOS
+
+	if os == "linux" {
+		if FileExists("/etc/alpine-release") {
+			os = "alpine-linux"
+		}
+	}
+
 	if runtime.GOARCH == "386" {
 		arch = "i686"
 	} else {
 		arch = "x86_64"
 	}
-	return fmt.Sprintf("https://github.com/darumatic/pyx/releases/download/python-%s/python-%s-%s-%s.tar.zst", PYTHON_VERSION, PYTHON_VERSION, arch, runtime.GOOS), nil
+	return fmt.Sprintf("https://github.com/darumatic/pyx/releases/download/python-%s/python-%s-%s-%s.tar.zst", PYTHON_VERSION, PYTHON_VERSION, arch, os), nil
 }
