@@ -67,7 +67,7 @@ func (pyx Pyx) version() (status int) {
 	fmt.Printf("pyx %s\n", version)
 	python, _ := GetPython()
 	pythonVersion, _ := GetPythonVersion(python)
-	fmt.Printf("python %s", pythonVersion)
+	fmt.Printf("python %s\n", pythonVersion)
 	return 0
 }
 
