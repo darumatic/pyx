@@ -37,7 +37,7 @@ Single command to run python3 script anywhere. pyx = install python + install gi
 
 ### Windows 10 
 
-1. Download the binary archive file. [https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Windows_x86_64.zip](https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Windows_x86_64.zip)
+1. Download the binary archive file. [https://github.com/darumatic/pyx/releases/download/1.0.5/pyx_1.0.5_Windows_x86_64.zip](https://github.com/darumatic/pyx/releases/download/1.0.5/pyx_1.0.5_Windows_x86_64.zip)
 2. Unzip the archive file.
 3. Open terminal, run ```./pyx --version```
 
@@ -45,7 +45,7 @@ Single command to run python3 script anywhere. pyx = install python + install gi
 
 1. Open terminal, and run the following command. 
 ```bash
-sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Linux_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
+sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.5/pyx_1.0.5_Linux_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
 ```
 3. Run ```./pyx --version```
 
@@ -54,7 +54,7 @@ sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_
 
 1. Open terminal, and run the following command. 
 ```bash
-sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.4/pyx_1.0.4_Darwin_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
+sudo wget -c https://github.com/darumatic/pyx/releases/download/1.0.5/pyx_1.0.5_Darwin_x86_64.tar.gz -O - | sudo tar -xz -C /usr/local/bin
 ```
 3. Run ```./pyx --version```
 
