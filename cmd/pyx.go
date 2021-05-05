@@ -46,7 +46,6 @@ func (pyx Pyx) Run() (code int) {
 		pyx.help()
 		return 0
 	}
-	fmt.Printf("Args %s", args.scriptArgs)
 
 	if args.repo != "" && args.script != "" {
 		EnsurePythonInstalled()
@@ -181,7 +180,7 @@ func cloneGitRepo(repo string, branch string) (string, error) {
 
 func normalizeRepoName(repoURL string) string {
 	u, _ := giturls.Parse(repoURL)
-	return path.Join(strings.ReplaceAll(u.Hostname(), ".", "_"), strings.ReplaceAll(u.Path[1:], "/", "_"))
+	return path.Join(strings.ReplaceAll(u.Hostname(), ".", "_"), strings.ReplaceAll(u.Path, "/", "_"))
 }
 
 func RepositoryHome() string {
