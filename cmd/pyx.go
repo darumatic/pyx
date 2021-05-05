@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-var version = "1.0.4"
+var version = "1.0.5"
 
 type Pyx struct {
 }
@@ -48,6 +48,8 @@ func (pyx Pyx) Run() (code int) {
 	}
 
 	if args.repo != "" && args.script != "" {
+		EnsurePythonInstalled()
+
 		if isGithubScript(args.repo, args.script) {
 			repo := fmt.Sprintf("https://github.com/%s.git", args.repo)
 			return pyx.runGitScript(repo, args.branch, args.script, args.scriptArgs)
@@ -65,9 +67,11 @@ func (pyx Pyx) Run() (code int) {
 
 func (pyx Pyx) version() (status int) {
 	fmt.Printf("pyx %s\n", version)
-	python, _ := GetPython()
-	pythonVersion, _ := GetPythonVersion(python)
-	fmt.Printf("python %s\n", pythonVersion)
+	python, err := GetPython()
+	if err == nil {
+		pythonVersion, _ := GetPythonVersion(python)
+		fmt.Printf("python %s\n", pythonVersion)
+	}
 	return 0
 }
 
@@ -130,10 +134,10 @@ func Usage() {
 	fmt.Println("$ pyx /opt/darumatic/pyx scripts/hello.py")
 }
 
-func Error(message string, args ...string) {
+func Error(message string, args ...interface{}) {
 	var errorMessage string
 	if len(args) > 0 {
-		errorMessage = fmt.Sprintf(message, args)
+		errorMessage = fmt.Sprintf(message, args...)
 	} else {
 		errorMessage = message
 	}

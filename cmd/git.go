@@ -14,7 +14,7 @@ import (
 
 func GitClone(repoURL string, branch string, dir string) error {
 	if strings.HasPrefix(repoURL, "git@") {
-		s := fmt.Sprintf("%s/.ssh/id_rsa", "")
+		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
 		sshKey, err := ioutil.ReadFile(s)
 		if err != nil {
 			fmt.Println("missing ssh private key")
@@ -74,7 +74,7 @@ func GitPull(repo string, branch string) error {
 	cfg := remote.Config()
 
 	if strings.HasPrefix(cfg.URLs[0], "git@") {
-		s := fmt.Sprintf("%s/.ssh/id_rsa", "")
+		s := fmt.Sprintf("%s/.ssh/id_rsa", UserHomeDir())
 		sshKey, err := ioutil.ReadFile(s)
 		if err != nil {
 			fmt.Print(err)
