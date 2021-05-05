@@ -46,6 +46,7 @@ func (pyx Pyx) Run() (code int) {
 		pyx.help()
 		return 0
 	}
+	fmt.Printf("Args %s", args.scriptArgs)
 
 	if args.repo != "" && args.script != "" {
 		EnsurePythonInstalled()
@@ -91,7 +92,7 @@ func (pyx Pyx) runGitScript(repoURL string, branch string, script string, script
 	InitPythonProject(dir)
 	scriptFile := path.Join(dir, script)
 	commandArgs := []string{scriptFile}
-	if len(scriptArgs) > 2 {
+	if len(scriptArgs) > 0 {
 		commandArgs = append(commandArgs, scriptArgs...)
 	}
 	RunPython(commandArgs...)
@@ -107,7 +108,7 @@ func (pyx Pyx) runLocalScript(dir string, script string, scriptArgs []string) (c
 
 	InitPythonProject(dir)
 	commandArgs := []string{scriptFile}
-	if len(scriptArgs) > 1 {
+	if len(scriptArgs) > 0 {
 		commandArgs = append(commandArgs, scriptArgs...)
 	}
 	RunPython(commandArgs...)
